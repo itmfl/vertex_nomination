@@ -3,7 +3,6 @@ library("igraph")
 #l = 10 
 #m = 20 
 #n = 100
-#g.tmp <- kidney.rdpg(n,m,l,c(0.32,0.32), c(0.3,0.3), c(0.35,0.35), c(0.3,0.3))
 #g1 <- graph.adjacency(g.tmp$adjacency, mode="undirected")
 
 kidney.egg.rdpg <- function(n,m,l, kidney.red, kidney.green,
@@ -19,7 +18,7 @@ kidney.egg.rdpg <- function(n,m,l, kidney.red, kidney.green,
   kidney2kidney.green <- sum(kidney.green*kidney.green)
   kidney2kidney.edge <- kidney2kidney.red + kidney2kidney.green
   kidney2kidney.edge <- kidney2kidney.edge/ceiling(kidney2kidney.edge)
-  kdiney2kidney.none <- 1 - kidney2kidney.edge
+  kidney2kidney.none <- 1 - kidney2kidney.edge
 
   kidney2egg.red <- sum(kidney.red*egg.red)
   kidney2egg.green <- sum(kidney.green*egg.green)
@@ -28,9 +27,9 @@ kidney.egg.rdpg <- function(n,m,l, kidney.red, kidney.green,
   kidney2egg.none <- 1 - kidney2egg.edge
 
   labels.mat <- matrix("", nrow = n, ncol = n)
-
-  labels.generation.mat <- matrix(runif(n*n), nrow = n)
-  labels.generation.mat <- (labels.generation.mat + t(labels.generation.mat))/2
+  labels.generation.mat <- matrix(0,nrow = n, ncol = n)
+  labels.generation.mat[col(labels.generation.mat) > row(labels.generation.mat)] <- runif(n*(n-1)/2)
+  labels.generation.mat <- (labels.generation.mat + t(labels.generation.mat))
 
   egg2egg.mat <- labels.generation.mat[1:m,1:m]
   kidney2kidney.mat <- labels.generation.mat[(m+1):n,(m+1):n]
@@ -42,8 +41,10 @@ kidney.egg.rdpg <- function(n,m,l, kidney.red, kidney.green,
 
   egg2egg.labels <- matrix("none", nrow=m, ncol = m)
   red.idx <- (egg2egg.mat <= egg2egg.red)
+  green.idx <- ((egg2egg.mat > egg2egg.red) &
+                (egg2egg.mat <= egg2egg.edge))
   egg2egg.labels[red.idx] <- "red"
-  green.idx <- (egg2egg.mat > egg2egg.red) & (egg2egg.mat <= egg2egg.edge)
+
   egg2egg.labels[green.idx] <- "green"
   
 
