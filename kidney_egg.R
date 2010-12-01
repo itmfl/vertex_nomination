@@ -5,25 +5,59 @@ library("igraph")
 #n = 100
 #g1 <- graph.adjacency(g.tmp$adjacency, mode="undirected")
 
+kidney.egg <- function(n,m,l,p.vec,s.vec){
+
+    p1 <- p.vec[1]
+    s1 <- s.vec[1]
+    p2 <- p.vec[2]
+    s2 <- s.vec[2]
+
+    runif.mat <- matrix(0,nrow = n, ncol = n)
+    runif.mat[col(runif.mat) > row(runif.mat)] <- runif(n*(n-1)/2)
+    runif.mat <- (runif.mat + t(runif.mat))
+
+    edge.mat <- matrix(p1 + p2, nrow = n, ncol =n)
+    edge.mat[1:m,1:m] <- (s1 + s2)
+
+    red.mat <- matrix(p1, nrow = n, ncol = n)
+    red.mat[1:m,1:m] <- s1
+
+    adjacency.mat <- matrix(0,nrow = n, ncol = n)
+    edge.idx <- (runif.mat < edge.mat)
+    adjacency.mat[edge.idx] <- 1
+
+    labels.mat <- matrix("none", nrow = n, ncol = n)
+    red.idx <- (runif.mat <= red.mat)
+    green.idx <- (runif.mat > red.mat & runif.mat <= edge.mat)
+
+    labels.mat[red.idx] <- "red"
+    labels.mat[green.idx] <- "green"
+
+    vertex.colors <- c(seq("red","red",length.out=l),
+                     seq("blue","blue",length.out=m-l),
+                     seq("green","green",length.out=(n-m)))
+
+    return(list(adjacency=adjacency.mat,
+              labels=labels.mat,
+              v.colors = vertex.colors))
+}
+    
 kidney.egg.rdpg <- function(n,m,l, kidney.red, kidney.green,
                             egg.red, egg.green){
   
   egg2egg.red <- sum(egg.red*egg.red)
   egg2egg.green <- sum(egg.green*egg.green)
   egg2egg.edge <- egg2egg.red + egg2egg.green
-  egg2egg.edge <- egg2egg.edge/ceiling(egg2egg.edge)
   egg2egg.none <- 1 - egg2egg.edge
 
   kidney2kidney.red <- sum(kidney.red*kidney.red)
   kidney2kidney.green <- sum(kidney.green*kidney.green)
   kidney2kidney.edge <- kidney2kidney.red + kidney2kidney.green
-  kidney2kidney.edge <- kidney2kidney.edge/ceiling(kidney2kidney.edge)
   kidney2kidney.none <- 1 - kidney2kidney.edge
 
   kidney2egg.red <- sum(kidney.red*egg.red)
   kidney2egg.green <- sum(kidney.green*egg.green)
   kidney2egg.edge <- kidney2egg.red + kidney2egg.green
-  kidney2egg.edge <- kidney2egg.edge/ceiling(kidney2egg.edge)
   kidney2egg.none <- 1 - kidney2egg.edge
 
   labels.mat <- matrix("", nrow = n, ncol = n)
@@ -44,7 +78,6 @@ kidney.egg.rdpg <- function(n,m,l, kidney.red, kidney.green,
   green.idx <- ((egg2egg.mat > egg2egg.red) &
                 (egg2egg.mat <= egg2egg.edge))
   egg2egg.labels[red.idx] <- "red"
-
   egg2egg.labels[green.idx] <- "green"
   
 
