@@ -29,9 +29,6 @@ validate.graph <- function(n,m,l,s1,num.iter){
                 t2.mean = stun.mean, t2.sd = stun.sd))
 }
         
-        
-
-
 glen.driver1 <- function(n,m,l,s1,num.monte.carlo.iter, method = "inverse.rdpg"){
 
   n <- 184 
