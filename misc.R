@@ -12,3 +12,78 @@ binomial.sum <- function(m,n){
   }
   return(s)
 }
+
+test4 <- function(mc){
+
+  GT = seq(0,0,length.out = mc)
+  LT = seq(0,0,length.out = mc)
+  EQ = seq(0,0,length.out = mc)
+  for( i in 1:mc){
+    a1 = runif(10)
+    a2 = runif(10)
+    if(max(a1) > max(a2))
+      GT[i] = 1
+    if(max(a2) > max(a1))
+      LT[i] = 1
+    if(max(a2) == max(a1))
+      EQ[i] = 1
+  }
+  return(list(a=sum(GT),b=sum(EQ),c=sum(LT)))
+}
+
+test5 <- function(mc){
+  GTa = seq(0,0,length.out = mc)
+  LTa = seq(0,0,length.out = mc)
+  EQa = seq(0,0,length.out = mc)
+
+  GTb = seq(0,0,length.out = mc)
+  LTb = seq(0,0,length.out = mc)
+  EQb = seq(0,0,length.out = mc)
+  
+  GTc = seq(0,0,length.out = mc)
+  LTc = seq(0,0,length.out = mc)
+  EQc = seq(0,0,length.out = mc)
+  
+  for( i in 1:mc){
+    a1 = rbinom(1,20,0.2)
+    b1 = rbinom(1,10,0.3)
+    a2 = rbinom(1,25,0.2)
+    b2 = rbinom(1,15,0.3)
+    c1 = a1 + b1 
+    c2 = a2 + b2 
+
+    GTa[i] <- (a1 > a2)
+    LTa[i] <- (a1 < a2)
+    EQa[i] <- (a1 == a2)
+    
+    GTb[i] <- (b1 > b2)
+    LTb[i] <- (b1 < b2)
+    EQb[i] <- (b1 == b2)
+
+    GTc[i] <- (c1 > c2)
+    LTc[i] <- (c1 < c2)
+    EQc[i] <- (c1 == c2)
+  }
+
+  return(list(gta = sum(GTa), lta = sum(LTa), eqa = sum(EQa),
+              gtb = sum(GTb), ltb = sum(LTb), eqb = sum(EQb),
+              gtc = sum(GTc), ltc = sum(LTc), eqc = sum(EQc)))
+}
+
+## tn.stats <- NULL
+## tx.stats <- NULL
+## tf.stats <- NULL
+## rdpg.stats <- NULL
+## diff.stats <- NULL
+
+## tx.stats1 <- glen.driver1(184,24,12,0.25,1000,method="tx.statistics")
+## tn.stats1 <- glen.driver1(184,24,12,0.25,1000,method="tn.statistics")
+## tf.stats1 <- glen.driver1(184,24,12,0.25,1000,method="tf.statistics")
+## rdpg.stats1 <- glen.driver1(184,24,12,0.25,1000,method="inverse.rdpg")
+## diff.stats1 <- glen.driver1(184,24,12,0.25,1000,method="diffusion.distance")
+
+## tx.stats2 <- glen.driver1(184,24,12,0.40,1000,method="tx.statistics")
+## tn.stats2 <- glen.driver1(184,24,12,0.40,1000,method="tn.statistics")
+## tf.stats2 <- glen.driver1(184,24,12,0.40,1000,method="tf.statistics")
+## rdpg.stats2 <- glen.driver1(184,24,12,0.40,1000,method="inverse.rdpg")
+## diff.stats2 <- glen.driver1(184,24,12,0.40,1000,method="diffusion.distance")
