@@ -12,8 +12,7 @@ validate.graph <- function(n,m,l,p.vec,s.vec,num.iter){
     stun <- stux
 
     for(i in 1:num.iter){
-        g.i <- kidney.egg(n,m,l,p.vec,s.vec)
-
+        g.i <- kidney.egg(n,m,l,p.vec,s.vec) 
         gi.stat <- g.statistics(g.i)
 
         stux[i,] <- gi.stat$t1
@@ -158,4 +157,72 @@ t2.test <- function(n,m,l,p.vec,s.vec,num.mc = 1000){
     }
     return(list(nobreak.ties = mean(rk1),break.ties = mean(rk2)))
 }
+
+nhlee.driver1 <- function(directory, method = "inverse.rdpg", n = 12, m = 5, l = 2){
+
+  filelist <- list.files(".", pattern = "myTVsK*")
+  num.mc <- length(filelist)
+  ##num.mc <- 200
+  
+  minR.noties <- seq(0,0,length.out = num.mc)
+  minR.ties <- minR.noties
+  prob.vec <- minR.noties
+
+
+  for(i in 1:num.mc){
+    g.i <- parse.tvks(filelist[i])
+    xyz.i <- nominate.vertex(g.i, method)
+  
+    minR.noties[i] <- which(xyz.i$order <=m)[1]
+    
+    minR.noties.val <- xyz.i$value[minR.noties[i]]
+    minR.noties.val.idx <- xyz.i$order[which(xyz.i$value == minR.noties.val)]
+    k1 <- length(which(minR.noties.val.idx > m))
+    k2 <- length(minR.noties.val.idx) - k1
+
+    minR.ties[i] <- minR.noties[i] + k1/(1 + k2)
+    prob.vec[i]<- k2/(k1 + k2)
+  }
+
+  return(list(prob.vec=prob.vec,
+              prob=sum(prob.vec)/num.mc,
+              vector.ties=minR.ties,
+              values.ties = sum(minR.ties)/num.mc))
         
+}
+tn1 <- nhlee.driver1(".", method = "tn.statistics")
+tx1 <- nhlee.driver1(".", method = "tx.statistics")
+tf1 <- nhlee.driver1(".", method = "tf.statistics")
+inverse.rdpg <- nhlee.driver1(".", method = "inverse.rdpg")
+
+
+  
+glen.driver1 <- function(n,m,l,p.vec,s.vec,
+                         num.monte.carlo.iter,
+                         method = "inverse.rdpg"){
+
+  n <- 184 
+  
+  minR.noties <- seq(n-m,0,length.out = num.monte.carlo.iter)
+  minR.ties <- minR.noties
+  
+  for(i in 1:num.monte.carlo.iter){
+    g.i <- kidney.egg(n,m,l,p.vec,s.vec)
+    xyz.i <- nominate.vertex(g.i, method)
+
+    minR.noties[i] <- which(xyz.i$order <=m)[1]
+    
+    minR.noties.val <- xyz.i$value[minR.noties[i]]
+    minR.noties.val.idx <- xyz.i$order[which(xyz.i$value == minR.noties.val)]
+    k1 <- length(which(minR.noties.val.idx > m))
+    k2 <- length(minR.noties.val.idx) - k1
+
+    minR.ties[i] <- minR.noties[i] + k1/(1 + k2)
+  }
+  
+  return(list(vector.noties=minR.noties,
+              value.noties=sum(minR.noties)/num.monte.carlo.iter,
+              vector.ties=minR.ties,
+              values.ties = sum(minR.ties)/num.monte.carlo.iter))
+}
+
