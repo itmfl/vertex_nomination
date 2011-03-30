@@ -153,17 +153,17 @@ graph.distance.nominate <- function(g){
 }
 
 nominate.vertex <- function(g, method){
-    
-    if(method == "inverse.rdpg")
-      return(inverse.rdpg.nominate(g))
-    if(method == "diffusion.distance")
-      return(graph.distance.nominate(g))
-    if(method == "tx.statistics")
-      return(tx.statistics.nominate(g))
-    if(method == "tn.statistics")
-      return(tn.statistics.nominate(g))
-    if(method == "tf.statistics")
-      return(tf.statistics.nominate(g))
+  do.call(paste(method,".nominate",sep=""), list(g))
+  ## if(method == "inverse.rdpg")
+  ##   return(inverse.rdpg.nominate(g))
+  ## if(method == "diffusion.distance")
+  ##   return(graph.distance.nominate(g))
+  ## if(method == "tx.statistics")
+  ##   return(tx.statistics.nominate(g))
+  ## if(method == "tn.statistics")
+  ##   return(tn.statistics.nominate(g))
+  ## if(method == "tf.statistics")
+  ##   return(tf.statistics.nominate(g))
 }
 
 

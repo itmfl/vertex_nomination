@@ -28,16 +28,15 @@ for(i in 1:num.iter){
 }
         
 glen.driver1 <- function(n,m,l,p.vec,s.vec,
-                         num.monte.carlo.iter,
+                         mc,
                          method = "inverse.rdpg"){
 
-  n <- 184 
-  
-  minR.noties <- seq(n-m,0,length.out = num.monte.carlo.iter)
+  minR.noties <- numeric(mc)
   minR.ties <- minR.noties
-  
-  for(i in 1:num.monte.carlo.iter){
-    g.i <- kidney.egg(n,m,l,p.vec,s.vec)
+  prob.vec <- numeric(mc)
+
+  for(i in 1:mc){
+    g.i <- kidney.egg.rdpg(n,m,l,p.vec[1],p.vec[2], s.vec[1], s.vec[2])
     xyz.i <- nominate.vertex(g.i, method)
 
     minR.noties[i] <- which(xyz.i$order <=m)[1]
@@ -47,13 +46,23 @@ glen.driver1 <- function(n,m,l,p.vec,s.vec,
     k1 <- length(which(minR.noties.val.idx > m))
     k2 <- length(minR.noties.val.idx) - k1
 
+    minR.noties[i] <- which(xyz.i$order <=m)[1]
+    maxval <- which.max(xyz.i$value)
+    idx <- which(xyz.i$value == maxval)
+    maxidx <- xyz.i$order[idx]
+    
+    k1 <- length(which(maxidx > m))
+    k2 <- length(maxidx) - k1
+
     minR.ties[i] <- minR.noties[i] + k1/(1 + k2)
+    prob.vec[i]<- k2/(k1 + k2)
   }
-  
-  return(list(vector.noties=minR.noties,
-              value.noties=sum(minR.noties)/num.monte.carlo.iter,
+
+  return(list(prob.vec=prob.vec,
+              prob=sum(prob.vec)/mc,
               vector.ties=minR.ties,
-              values.ties = sum(minR.ties)/num.monte.carlo.iter))
+              values.ties = sum(minR.ties)/mc))
+  
 }
 
 ## The code below run the kidney.egg.rdpg to generate random instances
@@ -230,10 +239,17 @@ fisher.combine <- function(n,m,l,p.vec,s.vec,mc){
     }
   return(list(nobreak.ties = mean(rk1),break.ties = mean(rk2)))
 }
-      
-        
 
-tn1 <- nhlee.driver1(".", method = "tn.statistics")
-tx1 <- nhlee.driver1(".", method = "tx.statistics")
-tf1 <- nhlee.driver1(".", method = "tf.statistics")
-inverse.rdpg <- nhlee.driver1(".", method = "inverse.rdpg")
+## tn1 <- nhlee.driver1(".", method = "tn.statistics")
+## tx1 <- nhlee.driver1(".", method = "tx.statistics")
+## tf1 <- nhlee.driver1(".", method = "tf.statistics")
+## inverse.rdpg <- nhlee.driver1(".", method = "inverse.rdpg")
+
+## rewrite.this <- function(n,m,l,pi0,piA,mc){
+
+##   xyz <- numeric(mc)
+
+##   for(i in 1:mc){
+    
+
+  
