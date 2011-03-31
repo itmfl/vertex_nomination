@@ -135,7 +135,25 @@ count.red.nn <- function(dist.mat, colors, k){
     return(list(vector = sorted.red.nn$x, order = idx[sorted.red.nn$ix]))
 }
 
-inverse.rdpg.nominate <- function(g, dim = 2){
+lda.nominate <- function(g, dim = 2){
+  A.list <- adjacency.list(g$adjacency)
+  x.red <- svd.extract(A.list$red, k = dim)
+  x.green <- svd.extract(A.list$green, k = dim)
+  x.separate <- cbind(x.red,x.green)
+
+
+  gr <- c(rep(1, length(which((g$v.colors == "red") | (g$v.colors == "blue")))),
+          rep(2, length(which(g$v.colors == "green"))))
+
+  abc <- lda(x.separate, grouping = gr, CV = TRUE)
+  idx <- which(g$v.colors != "red")
+  
+  uvw <- sort(abc$posterior[idx,1], decreasing = TRUE, index.return = TRUE)
+
+  return(list( order = idx[uvw$ix], value = uvw$x))
+}
+
+count.red.nn.nominate <- function(g, dim = 2){
 
     A.list <- adjacency.list(g$adjacency)
 
@@ -150,13 +168,23 @@ inverse.rdpg.nominate <- function(g, dim = 2){
     return(list(order=xyz$order, value=xyz$vector))
 }
 
-kidney.egg.rdpg.driver <- function(n,m,l,pi0, piA, mc){
+kidney.egg.rdpg.driver <- function(n,m,l,pi0, piA, mc, method = "count.red.nn"){
 
   prob.vec <- numeric(mc)
+  rk.vec <- numeric(mc)
 
   for(i in 1:mc){
     g.i <- kidney.egg.attributed(n,m,l,pi0,piA)
-    xyz.i <- inverse.rdpg.nominate(g.i)
+    xyz.i <- do.call(paste(method,".nominate", sep = ""), list(g.i,2))
+##    xyz.i <- inverse.rdpg.nominate(g.i)
+
+    rk <- which(xyz.i$order <= m)[1]
+    rk.val <- xyz.i$value[rk]
+    rk.val.idx <- xyz.i$order[which(xyz.i$value == rk.val)]
+    k1 <- length(which(rk.val.idx > m))
+    k2 <- length(rk.val.idx) - k1
+
+    rk.vec[i] <- rk + k1/(1 + k2)
 
     maxval <- max(xyz.i$value)
     maxidx <- which(xyz.i$value == maxval)
@@ -164,29 +192,44 @@ kidney.egg.rdpg.driver <- function(n,m,l,pi0, piA, mc){
 
     k1 <- length(which(idx <= m))
     prob.vec[i] <- k1/length(idx)
+    if(is.nan(prob.vec[i]))
+      browser()
   }
-  return(list(prob.vec = prob.vec, p = sum(prob.vec)/mc))
+  return(list(prob.vec = prob.vec, p = sum(prob.vec)/mc, rk.vec = rk.vec, mrr = mean(1/rk.vec)))
 }
 
-dirichlet.rdpg.driver <- function(n,m,l,x0,xA,mc){
+dirichlet.rdpg.driver <- function(n,m,l,x0,xA,mc, method = "count.red.nn"){
 
   prob.vec <- numeric(mc)
+  rk.vec <- numeric(mc)
 
   for(i in 1:mc){
     g.i <- dirichlet.rdpg(n,m,l,x0,xA)
-    xyz.i <- inverse.rdpg.nominate(g.i)
+    xyz.i <- do.call(paste(method,".nominate", sep = ""), list(g.i,2))
+    
+    ## xyz.i <- inverse.rdpg.nominate(g.i)
 
+    rk <- which(xyz.i$order <= m)[1]
+    rk.val <- xyz.i$value[rk]
+    rk.val.idx <- xyz.i$order[which(xyz.i$value == rk.val)]
+    k1 <- length(which(rk.val.idx > m))
+    k2 <- length(rk.val.idx) - k1
+
+    rk.vec[i] <- rk + k1/(1 + k2)
+    
     maxval <- max(xyz.i$value)
     maxidx <- which(xyz.i$value == maxval)
     idx <- xyz.i$order[maxidx]
 
     k1 <- length(which(idx <= m))
     prob.vec[i] <- k1/length(idx)
+    if(is.nan(prob.vec[i]))
+      browser()
   }
-  return(list(prob.vec = prob.vec, p = sum(prob.vec)/mc))
+  return(list(prob.vec = prob.vec, p = sum(prob.vec)/mc, rk.vec = rk.vec, mrr = mean(1/rk.vec)))
 }
 
-cep1 <- function(n){
+cep1 <- function(n, method = "count.red.nn"){
   m = 10
   l = 5
   r = 100
@@ -194,6 +237,7 @@ cep1 <- function(n){
   
   t <- seq(0.2,0.8,by=0.1)
   pvec <- numeric(length(t))
+  mrr.vec <- numeric(length(t))
 
   alpha0 <- c(0.6,0.2,0.2)
 
@@ -206,9 +250,10 @@ cep1 <- function(n){
     x0 <- x0[,2:3]
     xA <- xA[,2:3]
     
-    abc <- dirichlet.rdpg.driver(n,m,l,x0,xA,mc)
+    abc <- dirichlet.rdpg.driver(n,m,l,x0,xA,mc, method)
     pvec[i] <- abc$p
+    mrr.vec[i] <- abc$mrr
   }
-  return(pvec)
+  return(list(p = pvec, mrr = mrr.vec))
 }
 
