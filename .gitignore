@@ -5,3 +5,7 @@ auto
 .~*
 *.ods
 *.pdf
+*.aux
+*.log
+*.pdf
+*.RData
