@@ -70,20 +70,50 @@ test5 <- function(mc){
               gtc = sum(GTc), ltc = sum(LTc), eqc = sum(EQc)))
 }
 
-## tn.stats <- NULL
-## tx.stats <- NULL
-## tf.stats <- NULL
-## rdpg.stats <- NULL
-## diff.stats <- NULL
+pvpm <- function(a,b){
 
-## tx.stats1 <- glen.driver1(184,24,12,0.25,1000,method="tx.statistics")
-## tn.stats1 <- glen.driver1(184,24,12,0.25,1000,method="tn.statistics")
-## tf.stats1 <- glen.driver1(184,24,12,0.25,1000,method="tf.statistics")
-## rdpg.stats1 <- glen.driver1(184,24,12,0.25,1000,method="inverse.rdpg")
-## diff.stats1 <- glen.driver1(184,24,12,0.25,1000,method="diffusion.distance")
+  s1 <- sqrt(b) + sqrt(a/b*(b-a)) - a/sqrt(b)
+  s2 <- a/sqrt(b) + sqrt(a/b*(b-a)) - sqrt(b)
 
-## tx.stats2 <- glen.driver1(184,24,12,0.40,1000,method="tx.statistics")
-## tn.stats2 <- glen.driver1(184,24,12,0.40,1000,method="tn.statistics")
-## tf.stats2 <- glen.driver1(184,24,12,0.40,1000,method="tf.statistics")
-## rdpg.stats2 <- glen.driver1(184,24,12,0.40,1000,method="inverse.rdpg")
-## diff.stats2 <- glen.driver1(184,24,12,0.40,1000,method="diffusion.distance")
+  lambda <- s2^2/(s1^2 + s2^2)
+
+  y1 <- sqrt((1 - lambda)*b)
+  y2 <- sqrt(lambda*b)
+
+  x1 <- sqrt(1 - lambda)*a/sqrt(b) - sqrt(lambda)*sqrt(a/b*(b-a))
+  x2 <- sqrt(lambda)*a/sqrt(b) + sqrt(1 - lambda)*sqrt(a/b*(b-a))
+
+  return(list(x = c(x1,x2), y = c(y1,y2)))
+}
+
+pvpm2 <- function(p,s,lambda){
+
+  x <- list(length(p))
+  y <- list(length(p))
+
+  for(i in 1:length(p)){
+    a <- p[i]
+    b <- s[i]
+
+    if(a == b){
+      x[[i]] <- sqrt(a)
+      y[[i]] <- sqrt(b)
+    }
+    else{
+    
+      y1 <- sqrt((1 - lambda)*b)
+      y2 <- sqrt(lambda*b)
+
+      x1 <- sqrt(1 - lambda)*a/sqrt(b) - sqrt(lambda)*sqrt(a/b*(b-a))
+      x2 <- sqrt(lambda)*a/sqrt(b) + sqrt(1 - lambda)*sqrt(a/b*(b-a))
+
+      x[[i]] <- c(x1,x2)
+      y[[i]] <- c(y1,y2)
+    }
+  }
+
+  return(list(x = x, y = y))
+  
+}
+  
+
